@@ -15,11 +15,11 @@ def price_history():
         return jsonify({'error': 'Missing symbol'}), 400
 
     try:
-    data = yf.download(symbol, period=period, interval=interval)
-    if data.empty or 'Close' not in data:
-        return jsonify({'error': f'No data found for symbol {symbol}'}), 404
-    prices = data['Close'].dropna().tolist()
-    return jsonify({'symbol': symbol, 'prices': prices})
+        data = yf.download(symbol, period=period, interval=interval)
+        if data.empty or 'Close' not in data:
+            return jsonify({'error': f'No data found for symbol {symbol}'}), 404
+        prices = data['Close'].dropna().tolist()
+        return jsonify({'symbol': symbol, 'prices': prices})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
