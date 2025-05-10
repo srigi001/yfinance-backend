@@ -16,10 +16,17 @@ def price_history():
 
     try:
         data = yf.download(symbol, period=period, interval=interval)
-        if data.empty or 'Close' not in data:
-            return jsonify({'error': f'No data found for symbol {symbol}'}), 404
-        prices = data['Close'].dropna().tolist()
+
+        if data.empty:
+            return jsonify({'error': f'No data for symbol: {symbol}'}), 404
+
+        close_prices = data['Close']
+        if close_prices is None or close_prices.empty:
+            return jsonify({'error': f'No close price data for symbol: {symbol}'}), 404
+
+        prices = close_prices.dropna().to_list()
         return jsonify({'symbol': symbol, 'prices': prices})
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
