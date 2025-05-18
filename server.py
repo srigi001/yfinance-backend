@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import yfinance as yf
+import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -22,6 +23,31 @@ def price_history():
 
         prices = data['Close'].dropna().values.tolist()
         return jsonify({'symbol': symbol, 'prices': prices})
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/profile')
+def profile():
+    symbol = request.args.get('symbol')
+    if not symbol:
+        return jsonify({'error': 'Missing symbol'}), 400
+
+    try:
+        url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}?modules=assetProfile"
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        result = data.get("quoteSummary", {}).get("result")
+        if result:
+            profile = result[0].get("assetProfile", {})
+            return jsonify(profile)
+        else:
+            return jsonify({'error': 'Profile not found'}), 404
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
