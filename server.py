@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import yfinance as yf
-import requests
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -27,30 +26,33 @@ def price_history():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/api/profile')
 def profile():
     symbol = request.args.get('symbol')
+
     if not symbol:
         return jsonify({'error': 'Missing symbol'}), 400
 
     try:
-        url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}?modules=assetProfile"
-        headers = {
-            "User-Agent": "Mozilla/5.0"
-        }
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
 
-        result = data.get("quoteSummary", {}).get("result")
-        if result:
-            profile = result[0].get("assetProfile", {})
-            return jsonify(profile)
-        else:
-            return jsonify({'error': 'Profile not found'}), 404
+        if not info or 'shortName' not in info:
+            return jsonify({'error': f'No profile data found for {symbol}'}), 404
+
+        return jsonify({
+            'symbol': symbol,
+            'name': info.get('shortName'),
+            'sector': info.get('sector'),
+            'industry': info.get('industry'),
+            'country': info.get('country'),
+            'website': info.get('website'),
+        })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3001)
