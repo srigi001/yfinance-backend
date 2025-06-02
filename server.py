@@ -63,14 +63,22 @@ def latest_price():
 
     try:
         ticker = yf.Ticker(symbol)
-        price = ticker.fast_info.get('last_price')
 
+        # Try fast_info
+        fast_info = ticker.fast_info
+        price = fast_info.get('last_price')
+
+        # If price not found, fallback to history()
         if price is None:
-            return jsonify({'error': f'Price unavailable for symbol: {symbol}'}), 404
+            hist = ticker.history(period="1d", interval="1m")
+            if not hist.empty:
+                price = hist['Close'].dropna()[-1]
+            else:
+                return jsonify({'error': f'No recent price data for {symbol}'}), 404
 
         return jsonify({
             'symbol': symbol,
-            'price': price
+            'price': float(price)
         })
 
     except Exception as e:
