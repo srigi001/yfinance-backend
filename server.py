@@ -54,5 +54,28 @@ def profile():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/latest-price')
+def latest_price():
+    symbol = request.args.get('symbol')
+
+    if not symbol:
+        return jsonify({'error': 'Missing symbol'}), 400
+
+    try:
+        ticker = yf.Ticker(symbol)
+        price = ticker.fast_info.get('last_price')
+
+        if price is None:
+            return jsonify({'error': f'Price unavailable for symbol: {symbol}'}), 404
+
+        return jsonify({
+            'symbol': symbol,
+            'price': price
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3001)
