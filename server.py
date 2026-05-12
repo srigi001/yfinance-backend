@@ -11,7 +11,7 @@ def get_currency_multiplier(ticker_info):
     """
     # Check both info and fast_info for currency
     currency = ticker_info.get('currency', 'USD')
-   if currency in ['GBp', 'ILA']:
+    if currency in ['GBp', 'ILA']:
         return 0.01
     return 1.0
 
